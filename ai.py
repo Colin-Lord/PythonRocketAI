@@ -24,13 +24,13 @@ thrust = [0,0,0,0,0,0,0,0,0,0]
 alive = [1,1,1,1,1,1,1,1,1,1]
 
 thrustRate = 1000
-MutationRate = 0.5
+mutationRate = 0.5
 
 directionalThrust = [pygame.Vector2(0, 0),pygame.Vector2(0, 0),pygame.Vector2(0, 0),pygame.Vector2(0, 0),pygame.Vector2(0, 0),pygame.Vector2(0, 0),pygame.Vector2(0, 0),pygame.Vector2(0, 0),pygame.Vector2(0, 0),pygame.Vector2(0, 0)]
 
 
-HighestFitness = 0
-Fitness = [0,0,0,0,0,0,0,0,0,0]
+highestFitness = 0
+fitness = [0,0,0,0,0,0,0,0,0,0]
 
 initalRandomRange = 5
 
@@ -47,11 +47,25 @@ rocketRectangle = rocket[0].get_rect()
 #load background
 backgroundImg = pygame.image.load("images/background.jpg")
 
+
+
+
+
+def initialGeneration():
+    g = 0
+    while g < 10:
+
+        P = 0
+        while P < 21:
+            NeuralNetworkWeights[g][P] = random.uniform(-1, 1)
+            P += 1
+        g += 1
+
+##########################
+
 def draw_img(image, x, y, angle):
     rotated_image = pygame.transform.rotate(image, angle) 
     screen.blit(rotated_image, rotated_image.get_rect(center=image.get_rect(topleft=(x, y)).center).topleft)
-
-
 
 
 ##########################
@@ -97,7 +111,7 @@ def SaveBestWeights(index):
 
 def Mutate(index):
     for x in BestWeights:
-        NeuralNetworkWeights[index][x] = BestWeights[x] + (random.uniform(-1, 1) * MutationRate)
+        NeuralNetworkWeights[index][x] = BestWeights[x] + (random.uniform(-1, 1) * mutationRate)
 
 ##########################
 
@@ -113,6 +127,9 @@ def InitialRandom(index):
 ##########################
 
 
+def sigmoid(x):
+    x = max(-700, min(700, x))  # Clip x to a reasonable range to prevent overflow
+    return 1 / (1 + math.exp(-x))
 
 
 ##########################
@@ -123,23 +140,21 @@ def NeuralNetwork(angle, position2d, velocity2d, rocketindex):
     hiddenlayer1b = angle * NeuralNetworkWeights[rocketindex][1] + position2d.x * NeuralNetworkWeights[rocketindex][4] + position2d.y * NeuralNetworkWeights[rocketindex][7] + velocity2d.x * NeuralNetworkWeights[rocketindex][10] + velocity2d.y * NeuralNetworkWeights[rocketindex][13]
     hiddenlayer1c = angle * NeuralNetworkWeights[rocketindex][2] + position2d.x * NeuralNetworkWeights[rocketindex][5] + position2d.y * NeuralNetworkWeights[rocketindex][8] + velocity2d.x * NeuralNetworkWeights[rocketindex][11] + velocity2d.y * NeuralNetworkWeights[rocketindex][14]
 
-    hiddenlayer1a = 1 / ( 1 + math.e ** (-hiddenlayer1a) )
-    hiddenlayer1b = 1 / ( 1 + math.e ** (-hiddenlayer1b) )
-    hiddenlayer1c = 1 / ( 1 + math.e ** (-hiddenlayer1c) )
+    hiddenlayer1a = sigmoid(hiddenlayer1a)
+    hiddenlayer1b = sigmoid(hiddenlayer1b)
+    hiddenlayer1c = sigmoid(hiddenlayer1c)
 
     output1 = hiddenlayer1a * NeuralNetworkWeights[rocketindex][15] + hiddenlayer1b * NeuralNetworkWeights[rocketindex][17] + hiddenlayer1c * NeuralNetworkWeights[rocketindex][19]
     output2 = hiddenlayer1a * NeuralNetworkWeights[rocketindex][16] + hiddenlayer1b * NeuralNetworkWeights[rocketindex][18] + hiddenlayer1c * NeuralNetworkWeights[rocketindex][20]
 
-    rotation[rocketindex] = 1 / ( 1 + math.e ** (-output1) )
-    thrust[rocketindex] = 1 / ( 1 + math.e ** (-output2) )
+    rotation[rocketindex] = sigmoid(rotation[rocketindex])
+    thrust[rocketindex] = sigmoid(thrust[rocketindex])
 
     rotation[rocketindex]  = rotation[rocketindex] * 360
     thrust[rocketindex] = thrust[rocketindex] * thrustRate
-
 ##########################
 
-
-
+initialGeneration()
 
 while running:
     # poll for events
@@ -162,6 +177,7 @@ while running:
     
     if result:
         SpawnRockets()
+        generation += 1
 
 
     #neural network
@@ -206,9 +222,11 @@ while running:
 
         if alive[i] == 1:
             draw_img(rocket[i], position[i].x, position[i].y, rotation[i])
+            
 
         i += 1
 
+    
     # flip() the display to put your work on screen
     pygame.display.flip()
 
