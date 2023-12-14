@@ -23,7 +23,7 @@ thrust = [0,0,0,0,0,0,0,0,0,0]
 
 alive = [1,1,1,1,1,1,1,1,1,1]
 
-thrustRate = 1000
+thrustRate = 1000000
 mutationRate = 0.5
 
 directionalThrust = [pygame.Vector2(0, 0),pygame.Vector2(0, 0),pygame.Vector2(0, 0),pygame.Vector2(0, 0),pygame.Vector2(0, 0),pygame.Vector2(0, 0),pygame.Vector2(0, 0),pygame.Vector2(0, 0),pygame.Vector2(0, 0),pygame.Vector2(0, 0)]
@@ -147,8 +147,8 @@ def NeuralNetwork(angle, position2d, velocity2d, rocketindex):
     output1 = hiddenlayer1a * NeuralNetworkWeights[rocketindex][15] + hiddenlayer1b * NeuralNetworkWeights[rocketindex][17] + hiddenlayer1c * NeuralNetworkWeights[rocketindex][19]
     output2 = hiddenlayer1a * NeuralNetworkWeights[rocketindex][16] + hiddenlayer1b * NeuralNetworkWeights[rocketindex][18] + hiddenlayer1c * NeuralNetworkWeights[rocketindex][20]
 
-    rotation[rocketindex] = sigmoid(rotation[rocketindex])
-    thrust[rocketindex] = sigmoid(thrust[rocketindex])
+    rotation[rocketindex] = sigmoid(output1)
+    thrust[rocketindex] = sigmoid(output2)
 
     rotation[rocketindex]  = rotation[rocketindex] * 360
     thrust[rocketindex] = thrust[rocketindex] * thrustRate
@@ -190,7 +190,7 @@ while running:
     i = 0
     while i < 10:
 
-        directionalThrust[i] = pygame.Vector2(thrust[i] * math.cos(rotation[i]), thrust[i] * math.cos(rotation[i])) * dt
+        directionalThrust[i] = pygame.Vector2(thrust[i] * math.cos(rotation[i]), thrust[i] * math.sin(rotation[i])) * dt
 
         acceleration[i].x += directionalThrust[i].x * dt
         acceleration[i].y += directionalThrust[i].y * dt
