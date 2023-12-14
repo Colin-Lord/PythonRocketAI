@@ -170,11 +170,10 @@ while running:
 
     result = False
 
-    for x in alive:
-        if x == 0:
-            result = True
-        else: break
-    
+    if not any(alive):
+        result = True
+
+
     if result:
         SpawnRockets()
         generation += 1
